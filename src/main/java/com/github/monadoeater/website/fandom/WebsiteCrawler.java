@@ -17,7 +17,6 @@ public class WebsiteCrawler {
 
     private static String baseUrl;
     private static Document document;
-    private static String navHrefPrev;
     private static String navHrefNext;
     private static final ArrayList<String> chunkHrefs = new ArrayList<String>();
 
@@ -28,7 +27,7 @@ public class WebsiteCrawler {
 
 
     public void crawl() {
-        boolean crawlComplete = false;
+        boolean crawlComplete;
         do {
             for (String href: chunkHrefs) {
                 href = href;
@@ -62,14 +61,13 @@ public class WebsiteCrawler {
     private void setNav() {
         Element nav = getFirstClassElement(NAV_CLASS);
         ArrayList<Element> anchors = nav.getElementsByTag("a");
-        for (Element anchor: anchors) {
-            String href = getHrefFromAnchor(anchor);
-            if (anchor.text().startsWith("Previous page")) {
-                setNavHrefPrev(href);
-            }
-            else if (anchor.text().startsWith("Next page")) {
-                setNavHrefNext(href);
-            }
+        Element lastAnchor = anchors.getLast();
+        if (lastAnchor.text().startsWith("Next page")) {
+            String href = getHrefFromAnchor(lastAnchor);
+            setNavHrefNext(href);
+        }
+        else {
+            setNavHrefNext(null);
         }
     }
 
@@ -105,13 +103,7 @@ public class WebsiteCrawler {
 
     // document
     private static Document getDocument() {return document;}
-    private static void setDocument(Document document) {
-        WebsiteCrawler.document = document;}
-
-    // navHrefPrev
-    private static String getNavHrefPrev() {return navHrefPrev;}
-    private static void setNavHrefPrev(String navPrev) {
-        WebsiteCrawler.navHrefPrev = navHrefPrev;}
+    private static void setDocument(Document document) {WebsiteCrawler.document = document;}
 
     // navHrefNext
     private static String getNavHrefNext() {return navHrefNext;}
