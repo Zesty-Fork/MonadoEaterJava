@@ -1,4 +1,6 @@
 package com.github.monadoeater.db.sqlite;
+import com.github.monadoeater.website.fandom.Webpage;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -29,14 +31,15 @@ public class EaterDb {
     }
 
     // Insert webpage URL and binary data to SQLite database.
-    public static void insertWebpage(String webpageUrl, byte[] html) {
+    public static void insertWebpage(Webpage webpage) {
         String sqliteUrl = "jdbc:sqlite:" + DB_PATH;
         String sqlQuery = "INSERT INTO webpage (url, html) VALUES (?, ?);";
         try (Connection conn = DriverManager.getConnection(sqliteUrl)) {
             PreparedStatement stmt = conn.prepareStatement(sqlQuery);
-            stmt.setString(1, webpageUrl);
-            stmt.setBytes(2, html);
+            stmt.setString(1, webpage.getUrl());
+            stmt.setBytes(2, webpage.getDocument().html().getBytes());
             stmt.execute();
+            conn.commit();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
