@@ -8,11 +8,13 @@ public class Webpage {
     private String url = "";
     private Document document;
 
+    // Constructor: take webpage url and load in data.
     public Webpage(String webpageUrl) {
         setUrl(webpageUrl);
         setDocument(loadWebpage(webpageUrl));
     }
 
+    // Attempt connection to url and return Document object.
     private Document loadWebpage(String webpageUrl) {
         Document webpageDocument = null;
         try {
