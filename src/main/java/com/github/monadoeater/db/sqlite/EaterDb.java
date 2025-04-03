@@ -39,7 +39,6 @@ public class EaterDb {
             stmt.setString(1, webpage.getUrl());
             stmt.setBytes(2, webpage.getDocument().html().getBytes());
             stmt.execute();
-            conn.commit();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }

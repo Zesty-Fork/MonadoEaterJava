@@ -20,6 +20,11 @@ public class WebsiteCrawler {
         loadSitemap(baseUrl.concat(DEFAULT_SITEMAP_HREF));
     }
 
+    public WebsiteCrawler(String fandomName, String nameFrom) {
+        setBaseUrl(String.format(DEFAULT_URL, fandomName));
+        loadSitemap(baseUrl.concat(DEFAULT_SITEMAP_HREF).concat("?namefrom=").concat(nameFrom));
+    }
+
     // Loop site map pages and find all content pages.
     public Webpage crawl() {
         Webpage webpage = null;

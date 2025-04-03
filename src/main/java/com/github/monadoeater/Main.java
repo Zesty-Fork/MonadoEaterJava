@@ -10,7 +10,7 @@ public class Main {
     // Scrape fandom website and load into eater database.
     private static void eatFandomWebsite(String fandomName) {
         EaterDb.connect();
-        WebsiteCrawler websiteCrawler = new WebsiteCrawler(fandomName);
+        WebsiteCrawler websiteCrawler = new WebsiteCrawler(fandomName, "Brams_Driver");
         Webpage webpage = websiteCrawler.crawl();
         while (webpage != null) {
             System.out.println("Eating: ".concat(webpage.getUrl()));
