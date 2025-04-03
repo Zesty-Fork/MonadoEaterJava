@@ -1,9 +1,7 @@
 package com.github.monadoeater.website.fandom;
 
-import java.io.IOException;
 import java.util.ArrayList;
-
-import org.jsoup.Jsoup;
+import java.util.Iterator;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
@@ -14,54 +12,48 @@ public class WebsiteCrawler {
     private static final String CHUNK_CLASS = "mw-allpages-chunk";
 
     private static String baseUrl;
-    private static Document document;
     private static String navHrefNext;
-    private static final ArrayList<String> chunkHrefs = new ArrayList<>();
+    private static Iterator<String> chunkHrefIterator = null;
 
     public WebsiteCrawler(String fandomName) {
         setBaseUrl(String.format(DEFAULT_URL, fandomName));
-        initializeSitemap(baseUrl.concat(DEFAULT_SITEMAP_HREF));
+        loadSitemap(baseUrl.concat(DEFAULT_SITEMAP_HREF));
     }
 
     // Loop site map pages and find all content pages.
-    public void crawl() {
-        boolean lastPage;
-        do {
-            for (String href: chunkHrefs) {
-                href = href;
-            }
-            chunkHrefs.clear();
-            initializeSitemap(baseUrl.concat(navHrefNext));
-            lastPage = isLastPage();
-        } while (!lastPage);
+    public Webpage crawl() {
+        Webpage webpage = null;
+        if (chunkHrefIterator.hasNext()) {
+            webpage = getNextWebpage();
+        }
+        else if (!isLastSitemap()) {
+            loadSitemap(baseUrl.concat(navHrefNext));
+            webpage = getNextWebpage();
+        }
+        return webpage;
+    }
+
+    private Webpage getNextWebpage() {
+        String href = chunkHrefIterator.next();
+        return new Webpage(baseUrl.concat(href));
     }
 
     // Check if the next nav href is null.
-    private boolean isLastPage() {
+    private boolean isLastSitemap() {
         return navHrefNext == null;
     }
 
     // Load sitemap and parse nav and chunk elements.
-    private void initializeSitemap(String sitemapUrl) {
-        System.out.println("Initializing sitemap: " + sitemapUrl);
-        loadUrl(sitemapUrl);
-        parseNav();
-        parseChunk();
+    private void loadSitemap(String sitemapUrl) {
+        Webpage webpage = new Webpage(sitemapUrl);
+        parseNav(webpage);
+        setChunkHrefIterator(parseChunk(webpage));
     }
 
-    // Connect to url and store as Document object.
-    public void loadUrl(String url) {
-        try {
-            setDocument(Jsoup.connect(url).get());
-        }
-        catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
-    }
 
     // Parse nav for next site map href.
-    private void parseNav() {
-        Element nav = getFirstClassElement(NAV_CLASS);
+    private void parseNav(Webpage webpage) {
+        Element nav = getFirstClassElement(webpage.getDocument(), NAV_CLASS);
         ArrayList<Element> anchors = nav.getElementsByTag("a");
         Element lastAnchor = anchors.getLast();
         if (lastAnchor.text().startsWith("Next page")) {
@@ -74,8 +66,9 @@ public class WebsiteCrawler {
     }
 
     // Parse chunk for all content page hrefs.
-    private void parseChunk() {
-        Element chunkClass = getFirstClassElement(CHUNK_CLASS);
+    private Iterator<String> parseChunk(Webpage webpage) {
+        ArrayList<String> chunkHrefs = new ArrayList<String>();
+        Element chunkClass = getFirstClassElement(webpage.getDocument(), CHUNK_CLASS);
         ArrayList<Element> li = chunkClass.getElementsByTag("li");
         for (Element item : li) {
             Element anchor = item.getElementsByTag("a").first();
@@ -84,11 +77,12 @@ public class WebsiteCrawler {
                 chunkHrefs.add(href);
             }
         }
+        return chunkHrefs.iterator();
     }
 
     // Return first element from a class.
-    private Element getFirstClassElement(String className) {
-        ArrayList<Element> navClass = WebsiteCrawler.document.getElementsByClass(className);
+    private Element getFirstClassElement(Document document, String className) {
+        ArrayList<Element> navClass = document.getElementsByClass(className);
         return navClass.getFirst();
     }
 
@@ -99,6 +93,6 @@ public class WebsiteCrawler {
 
     /*** Getters/setters ***/
     private static void setBaseUrl(String baseUrl) {WebsiteCrawler.baseUrl = baseUrl;}
-    private static void setDocument(Document document) {WebsiteCrawler.document = document;}
     private static void setNavHrefNext(String navHrefNext) {WebsiteCrawler.navHrefNext = navHrefNext;}
+    public static void setChunkHrefIterator(Iterator<String> chunkHrefIterator) {WebsiteCrawler.chunkHrefIterator = chunkHrefIterator;}
 }
